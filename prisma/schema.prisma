@@ -1,0 +1,412 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.String
+  access_token      String?  @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.String
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  name              String?
+  email             String           @unique
+  hashedPassword    String?
+  role              Role             @default(USER)
+  image             String?
+  emailVerified     DateTime?
+  resetToken        String?
+  resetTokenExpires DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  accounts          Account[]
+  sessions          Session[]
+  reviews           Review[]
+  orders            Order[]
+  addresses         Address[]
+  cart              Cart?
+  applications      JobApplication[]
+  blogs             Blog[]
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum Role {
+  USER
+  ADMIN
+  MANAGER
+}
+
+model Product {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  slug        String?     @unique
+  description String
+  price       Float
+  images      String[]
+  category    Category
+  gender      Gender
+  size        Size[]
+  colors      Color[]
+  inStock     Boolean     @default(true)
+  stockCount  Int         @default(0)
+  featured    Boolean     @default(false)
+  reviews     Review[]
+  orderItems  OrderItem[]
+  cartItems   CartItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  brand       String?
+  sku         String?     @unique
+  weight      Float?
+  dimensions  String?
+  tags        String[]    @default([])
+  discount    Float?      @default(0)
+  rating      Float?      @default(0)
+  reviewCount Int         @default(0)
+}
+
+enum Category {
+  SHIRT
+  JEANS
+  JACKET
+  SAREE
+  DRESS
+  TSHIRT
+  SHOES
+  ACCESSORIES
+  ETHNIC
+  SPORTSWEAR
+  FORMAL
+  CASUAL
+}
+
+enum Gender {
+  MEN
+  WOMEN
+  KIDS
+  UNISEX
+}
+
+enum Size {
+  XS
+  S
+  M
+  L
+  XL
+  XXL
+  XXXL
+  FREE_SIZE
+}
+
+enum Color {
+  BLACK
+  WHITE
+  RED
+  BLUE
+  GREEN
+  YELLOW
+  PINK
+  PURPLE
+  BROWN
+  GREY
+  NAVY
+  MAROON
+  BEIGE
+  MULTI
+}
+
+model Review {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  rating    Int
+  comment   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  title     String?
+  isVerified Boolean @default(false)
+  helpful    Int     @default(0)
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  UPI
+  NET_BANKING
+  WALLET
+  COD
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Order {
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String        @db.ObjectId
+  orderNumber      String        @unique
+  status           OrderStatus   @default(PENDING)
+  paymentStatus    PaymentStatus @default(PENDING)
+  paymentMethod    PaymentMethod @default(COD)
+  total            Float
+  subtotal         Float
+  tax              Float
+  shipping         Float
+  discount         Float         @default(0)
+  items            OrderItem[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address          Address       @relation(fields: [addressId], references: [id])
+  addressId        String        @db.ObjectId
+  notes            String?
+  trackingNumber   String?
+  estimatedDelivery DateTime?
+}
+
+model OrderItem {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  quantity  Int
+  size      Size
+  color     Color
+  price     Float
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+  productId String  @db.ObjectId
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+  REFUNDED
+}
+
+model Address {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  name       String
+  street     String
+  city       String
+  state      String
+  postalCode String
+  country    String
+  phone      String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders     Order[]
+  type       AddressType @default(HOME)
+}
+
+enum AddressType {
+  HOME
+  WORK
+  OTHER
+}
+
+model Cart {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String     @unique @db.ObjectId
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CartItem {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  quantity  Int
+  size      Size
+  color     Color
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cartId    String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+  productId String  @db.ObjectId
+}
+
+enum Department {
+  ENGINEERING
+  DESIGN
+  MARKETING
+  SALES
+  CUSTOMER_SERVICE
+  OPERATIONS
+  FINANCE
+  HR
+  PRODUCT
+  OTHER
+}
+
+model Career {
+  id               String           @id @default(auto()) @map("_id") @db.ObjectId
+  title            String
+  slug             String?          @unique
+  department       Department       @default(ENGINEERING)
+  location         String
+  type             JobType          @default(FULL_TIME)
+  description      String
+  requirements     String[]
+  responsibilities String[]
+  status           JobStatus        @default(OPEN)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  applications     JobApplication[]
+  salary          SalaryRange?
+  experience      ExperienceLevel   @default(ENTRY)
+  skills          String[]         @default([])
+  benefits        String[]         @default([])
+  deadline        DateTime?
+  positions       Int              @default(1)
+}
+
+type SalaryRange {
+  min     Float
+  max     Float
+  currency String @default("USD")
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  REMOTE
+  HYBRID
+}
+
+enum JobStatus {
+  OPEN
+  CLOSED
+  DRAFT
+  ARCHIVED
+}
+
+enum ExperienceLevel {
+  ENTRY
+  JUNIOR
+  MID
+  SENIOR
+  LEAD
+  MANAGER
+  DIRECTOR
+  EXECUTIVE
+}
+
+model JobApplication {
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String            @db.ObjectId
+  careerId    String            @db.ObjectId
+  resume      String
+  coverLetter String?
+  status      ApplicationStatus @default(PENDING)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  career      Career            @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  experience  Int?
+  currentCtc  Float?
+  expectedCtc Float?
+  noticePeriod Int?
+  currentCompany String?
+  currentRole    String?
+  portfolio      String?
+  linkedIn       String?
+  github         String?
+  notes          String?
+  interviewDate  DateTime?
+  interviewNotes String?
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWING
+  SHORTLISTED
+  INTERVIEW_SCHEDULED
+  OFFER_EXTENDED
+  OFFER_ACCEPTED
+  OFFER_DECLINED
+  REJECTED
+  WITHDRAWN
+}
+
+model Blog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  slug        String   @unique
+  excerpt     String
+  content     String
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String   @db.ObjectId
+  category    BlogCategory
+  image       String?
+  tags        String[]
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum BlogCategory {
+  FASHION_TRENDS
+  STYLE_TIPS
+  SUSTAINABLE_FASHION
+  MENS_FASHION
+  WOMENS_FASHION
+  KIDS_FASHION
+  FASHION_NEWS
+  LIFESTYLE
+  BEAUTY
+}

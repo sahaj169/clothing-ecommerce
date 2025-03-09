@@ -1,7 +1,7 @@
 # StyleHub E-Commerce Website
 
 StyleHub is a modern e-commerce platform built with Next.js, offering a seamless shopping experience for fashion products across men's, women's, and kids' categories.
-
+Made by @sahaj169
 ## Features
 
 - **Responsive Design**: Fully responsive UI that works on all devices

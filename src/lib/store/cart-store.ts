@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Size } from "@prisma/client";
+import { Size, Color } from "@prisma/client";
 
 export interface CartItem {
   id: string;
@@ -11,6 +11,7 @@ export interface CartItem {
   quantity: number;
   size: Size;
   stockCount: number;
+  color?: Color;
 }
 
 interface CartStore {

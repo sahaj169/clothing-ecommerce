@@ -32,7 +32,7 @@ export function OptimizedImage({
 }: OptimizedImageProps) {
   // Optimize the URL if needed
   const optimizedSrc = optimizeUrl
-    ? getOptimizedImageUrl(src, Number(width), quality)
+    ? getOptimizedImageUrl(src, Number(width), quality as number)
     : src;
 
   const [imgSrc, setImgSrc] = useState<string | null>(null);

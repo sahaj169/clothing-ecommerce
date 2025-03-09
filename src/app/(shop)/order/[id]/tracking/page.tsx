@@ -66,7 +66,7 @@ export default async function OrderTrackingPage({
       order={order || undefined}
       orderId={orderId}
       isAuthenticated={isAuthenticated}
-      userEmail={user?.email}
+      userEmail={user?.email as string}
     />
   );
 }

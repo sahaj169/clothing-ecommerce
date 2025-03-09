@@ -32,6 +32,7 @@
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "critters": "^0.0.23",
     "framer-motion": "^12.4.10",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.344.0",

@@ -1,7 +1,7 @@
 import { getServerAuth } from "@/lib/auth/get-server-auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db/prisma";
-import AccountPageClient from "./client";
+import AccountPageClient, { Order } from "./client";
 
 export default async function AccountPage() {
   const { user, isAuthenticated } = await getServerAuth();
@@ -43,7 +43,7 @@ export default async function AccountPage() {
   });
 
   // Transform data to match client-side expectations
-  const formattedOrders = orders.map((order) => {
+  const formattedOrders = orders.map((order: any) => {
     // Type assertion for order items
     const orderItems = "items" in order ? order.items : [];
 
@@ -63,7 +63,7 @@ export default async function AccountPage() {
     };
   });
 
-  const formattedAddresses = addresses.map((address) => ({
+  const formattedAddresses = addresses.map((address: any) => ({
     id: address.id,
     name: address.name,
     street: address.street,

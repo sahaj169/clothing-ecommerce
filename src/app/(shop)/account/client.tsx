@@ -38,7 +38,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageContainer } from "@/components/layout/page-container";
 
-interface Order {
+export interface Order {
   id: string;
   createdAt: string;
   status: string;
